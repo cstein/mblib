@@ -2,6 +2,10 @@
 
 This general many-body library enables you to calculate the energy (and energy derived properties) to any order when you interface it properly to a quantum chemistry code.
 
+## Requirements
+
+Obviously, any quantum chemistry code that can provide SCF capability. Furthermore, either this quantum chemistry code or an external library to provide the integrals are needed. An example of such a library would be the [GEN1INT library](https://repo.ctcc.no/projects/gen1int "library") (a [paper describing GEN1INT](http://onlinelibrary.wiley.com/doi/10.1002/qua.22886/abstract "paper") is also available).
+
 ## FAQ
 
 ### What codes are this library interfaced to?
