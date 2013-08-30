@@ -1,0 +1,199 @@
+#!/bin/sh
+#
+# This is the script for generating files for a specific Dalton test job.
+#
+# For the .check file ksh or bash is preferred, otherwise use sh
+# (and hope it is not the old Bourne shell, which will not work)
+#
+if [ -x /bin/ksh ]; then
+   CHECK_SHELL='#!/bin/ksh'
+elif [ -x /bin/bash ]; then
+   CHECK_SHELL='#!/bin/bash'
+else
+   CHECK_SHELL='#!/bin/sh'
+fi
+
+
+#######################################################################
+#  TEST DESCRIPTION
+#######################################################################
+cat > fmo_embed_3_fullcoul.info <<'%EOF%'
+   fmo_embed_3_fullcoul
+   ---------------
+   Molecule:         Methane and three water molecules
+   Wave Function:    HF / STO-3G
+   Test Purpose:     Test of energies through sirius
+                     Test of mulliken charges through sirius
+                     Test of dipole moment through abacus
+                     Electrostatic potential through full Coulomb bath
+%EOF%
+#######################################################################
+#  MOLECULE INPUT
+#######################################################################
+cat > fmo_embed_3_fullcoul.mol <<'%EOF%'
+BASIS
+STO-3G
+
+
+AtomTypes=3 NoSymmetry Charge=0 Angstrom
+Charge=6.0 Atoms=1
+C            -0.0620449104   -0.8211853777    1.4035479101 
+Charge=8.0 Atoms=3
+O             1.3310156746    2.2920103643   -0.3646602763 
+O             2.6771486423   -0.0979459546   -0.5670123229 
+O             0.3341986610   -0.5229172513   -2.2062286062 
+Charge=1.0 Atoms=10
+H             0.9781601822   -0.9598582799    1.7043287829 
+H            -0.6694235490   -0.6227695163    2.2883877548 
+H            -0.4196035399   -1.7246295398    0.9052635609 
+H            -0.1370586380    0.0242345666    0.7173738417 
+H             2.1816005823    2.5279464541    0.0331934745 
+H             1.4741668641    1.3407918901   -0.5447587308 
+H             3.5868473315   -0.2517482311   -0.8759075366 
+H             2.6910439379   -0.5133936607    0.3171585205 
+H             1.1747695795   -0.5367106387   -1.6999634119 
+H             0.1944995798    0.4194969627   -2.3609888378 
+%EOF%
+#######################################################################
+#  DALTON INPUT
+#######################################################################
+cat > fmo_embed_3_fullcoul.dal <<'%EOF%'
+**DALTON
+.RUN WAVE FUNCTIONS
+.RUN PROPERTIES
+.DIRECT
+*FMO
+.FMO
+.NBODY
+3
+.NFRAG
+4
+.CHARGES
+0 0 0 0
+.MXSCCI
+10
+.SCCDTO
+1.0E-6
+.INDAT
+14
+1  5  6  7  8  0
+2  9 10 0
+3 11 12 0
+4 13 14 0
+.DEBUG
+.BASIS
+STO-3G
+**WAVE FUNCTIONS
+.HF
+*POPULATION ANALYSIS
+.MULLIKEN
+**END OF
+%EOF%
+#######################################################################
+#  CHECK SCRIPT
+#######################################################################
+echo $CHECK_SHELL > fmo_embed_3_fullcoul.check
+cat >> fmo_embed_3_fullcoul.check <<'%EOF%'
+log=$1
+
+if [ `uname` = Linux ]; then
+   GREP="egrep -a"
+else
+   GREP="egrep"
+fi
+
+#
+# Fmo setup verification
+#
+CRIT1=`$GREP "nbody        =    3" $log | wc -l`
+CRIT2=`$GREP "nfrag        =    4" $log | wc -l`
+CRIT3=`$GREP "total charge =    0" $log | wc -l`
+CRIT4=`$GREP "basis set    = STO-3G" $log | wc -l`
+CRIT5=`$GREP "scc iters    =   10" $log | wc -l`
+CRIT6=`$GREP "scc D tol    =    1\.000E\-06" $log | wc -l`
+CRIT7=`$GREP "Electrostatic potential will be included:" $log | wc -l`
+CRIT8=`$GREP "Using full 1e\- and 2e\- potential." $log | wc -l`
+TEST[1]=`expr $CRIT1 \+ $CRIT2 \+ $CRIT3 \+ $CRIT4 \+ $CRIT5 \+ $CRIT6 \+ $CRIT7 \+ $CRIT8`
+CTRL[1]=8
+ERROR[1]="INCORRECT CALCULATION TYPE"
+
+#
+# verify energies
+#
+# 1-body first
+CRIT1=`$GREP "1-body result" $log | wc -l`
+CRIT2=`$GREP "1  \-38\.789311" $log | wc -l`
+CRIT3=`$GREP "2  \-74\.489222" $log | wc -l`
+CRIT4=`$GREP "3  \-74\.487104" $log | wc -l`
+CRIT5=`$GREP "4  \-74\.488756" $log | wc -l`
+CRIT6=`$GREP "E\( 1\) =   \-262\.254394" $log | wc -l`
+TEST[2]=`expr $CRIT1 \+ $CRIT2 \+ $CRIT3 \+ $CRIT4 \+ $CRIT5 \+ $CRIT6`
+CTRL[2]=6
+ERROR[2]="ONE-BODY ENERGIES ARE WRONG"
+
+# 2-body second
+CRIT1=`$GREP "2-body result" $log | wc -l`
+CRIT2=`$GREP "1           2  \-113\.267041" $log | wc -l`
+CRIT3=`$GREP "1           3  \-113\.337845" $log | wc -l`
+CRIT4=`$GREP "1           4  \-113\.263606" $log | wc -l`
+CRIT5=`$GREP "2           3  \-149\.020722" $log | wc -l`
+CRIT6=`$GREP "2           4  \-148\.929305" $log | wc -l`
+CRIT7=`$GREP "3           4  \-149\.014523" $log | wc -l`
+CRIT8=`$GREP "E\( 2\) =   \-262\.254712" $log | wc -l`
+TEST[3]=`expr $CRIT1 \+ $CRIT2 \+ $CRIT3 \+ $CRIT4 \+ $CRIT5 \+ $CRIT6 \+ $CRIT7 \+ $CRIT8`
+CTRL[3]=8
+ERROR[3]="TWO-BODY ENERGIES ARE WRONG"
+
+# 3-body third
+CRIT1=`$GREP "3-body result" $log | wc -l`
+CRIT2=`$GREP "1           2           3  \-187\.809227" $log | wc -l`
+CRIT3=`$GREP "1           2           4  \-187\.716709" $log | wc -l`
+CRIT4=`$GREP "1           3           4  \-187\.807904" $log | wc -l`
+CRIT5=`$GREP "2           3           4  \-223\.464749" $log | wc -l`
+CRIT6=`$GREP "E\( 3\) =   \-262\.254711" $log | wc -l`
+TEST[4]=`expr $CRIT1 \+ $CRIT2 \+ $CRIT3 \+ $CRIT4 \+ $CRIT5 \+ $CRIT6`
+CTRL[4]=6
+ERROR[4]="THREE-BODY ENERGIES ARE WRONG"
+
+# mulliken charge tests. Here we test only three values but all levels
+CRIT1=`$GREP -A16 "1-body mulliken" $log | $GREP "Q\( 1\) =     0\.11868" | wc -l`
+CRIT2=`$GREP -A16 "2-body mulliken" $log | $GREP "Q\( 1\) =     0\.11867" | wc -l`
+CRIT3=`$GREP -A16 "3-body mulliken" $log | $GREP "Q\( 1\) =     0\.11868" | wc -l`
+CRIT4=`$GREP -A16 "1-body mulliken" $log | $GREP "Q\( 2\) =    \-0\.03008" | wc -l`
+CRIT5=`$GREP -A16 "2-body mulliken" $log | $GREP "Q\( 2\) =    \-0\.03010" | wc -l`
+CRIT6=`$GREP -A16 "3-body mulliken" $log | $GREP "Q\( 2\) =    \-0\.03010" | wc -l`
+CRIT7=`$GREP -A16 "1-body mulliken" $log | $GREP "Q\(14\) =     0\.01406" | wc -l`
+CRIT8=`$GREP -A16 "2-body mulliken" $log | $GREP "Q\(14\) =     0\.01404" | wc -l`
+CRIT9=`$GREP -A16 "3-body mulliken" $log | $GREP "Q\(14\) =     0\.01404" | wc -l`
+TEST[5]=`expr $CRIT1 \+ $CRIT2 \+ $CRIT3 \+ $CRIT4 \+ $CRIT5 \+ $CRIT6 \+ $CRIT7 \+ $CRIT8 \+ $CRIT9`
+CTRL[5]=9
+ERROR[5]="MULLIKEN CHARGES ARE WRONG"
+
+# dipole moment test
+CRIT1=`$GREP "D\(   1\) =     0\.58905    \-0\.08340     0\.25285 \|D\| =     0\.64643" $log | wc -l`
+CRIT2=`$GREP "D\(   2\) =     0\.58931    \-0\.08378     0\.25297 \|D\| =     0\.64676" $log | wc -l`
+CRIT3=`$GREP "D\(   3\) =     0\.58929    \-0\.08376     0\.25297 \|D\| =     0\.64674" $log | wc -l`
+TEST[6]=`expr $CRIT1 \+ $CRIT2 \+ $CRIT3`
+CTRL[6]=3
+ERROR[6]="DIPOLE MOMENTS ARE WRONG"
+
+PASSED=1 
+for i in 1 2 3 4 5 6
+do
+   if [ ${TEST[i]} -ne ${CTRL[i]} ]; then
+     echo "${ERROR[i]} ( test = ${TEST[i]}; control = ${CTRL[i]} ); "
+     PASSED=0
+   fi
+done
+
+if [ $PASSED -eq 1 ]
+then
+  echo TEST ENDED PROPERLY
+  exit 0
+else
+  echo THERE IS A PROBLEM
+  exit 1
+fi                
+%EOF%
+chmod +x fmo_embed_3_fullcoul.check
+#######################################################################
