@@ -6,7 +6,7 @@ This general many-body library enables you to calculate the energy (and energy d
 
 ### What codes are this library interfaced to?
 
-Currently, only the (http://www.daltonprogram.org)"DALTON" program in a development version. The expected public release is sometime in 2014. We do have a plan to provide a patch to the 2013 release before the end of this year which will enable you to try it out yourself.
+Currently, only the [DALTON](http://www.daltonprogram.org/ "DALTON") program in a development version. The expected public release is sometime in 2014. We do have a plan to provide a patch to the 2013 release before the end of this year which will enable you to try it out yourself.
 
 ### How does it work?
 
