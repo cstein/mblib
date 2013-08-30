@@ -1,11 +1,12 @@
-!> @brief A generalized Fragment Molecular Orbital (FMO) module for DALTON
+!> @brief A generalized many-body calculation module
 !!
 !! @author Casper Steinmann
 !!
 !! @details This module is developed in the hope that it will
 !!          be useful to people, either in terms of inspiration
 !!          or for further development
-!! @bug DFT-calculations do multiple read-ins of coefficients
+!! @bug DFT-calculations do multiple read-ins of coefficients from DALTON
+!! @todo Generalize the input reader
 module mb
 
     use mb_precision
@@ -19,16 +20,16 @@ module mb
 
     public :: mb_init            ! initializes 
     public :: mb_dalton_input    ! reads and parses dalton input
-    public :: mb_executer        ! executes FMO calculations
+    public :: mb_executer        ! executes a many-body calculation.
     public :: mb_fock            ! adds a possibe contribution to the fock matrix
     public :: mb_store_nmer_property ! storage of properties
-    public :: mb_output          ! handles FMO output
+    public :: mb_output          ! handles many-body output
     public :: mb_twoints
 
 contains
 
 !------------------------------------------------------------------------------
-!> @brief controls and executes an FMO calculation
+!> @brief controls and executes a many-body calculation
 !!
 !! @author Casper Steinmann
 !!
@@ -46,7 +47,7 @@ subroutine mb_executer(dalwrk,iwsize,wctrl)
 
     work => dalwrk
 
-    ! pass memory pointers and checks along to internal FMO storage
+    ! pass memory pointers and checks along to internal storage
     idalton_work_size = iwsize
     dalton_work_control = wctrl
 
@@ -87,7 +88,7 @@ subroutine mb_executer(dalwrk,iwsize,wctrl)
 
     nullify(work)
 
-9000 format(72(1H-),/3x,"FMO iter",i3," max(dD) =",2f12.9,/72(1H-))
+9000 format(72(1H-),/3x,"MB one-body iter",i3," max(dD) =",2f12.9,/72(1H-))
 9005 format(/72(1H-),///3x,"SCC converged in",i3,"iterations!",///72(1H-))
 
 end subroutine
@@ -350,9 +351,9 @@ subroutine calculate_nmer(nmer)
     endif
 
     ! Evaluate fragment SCF
-    ! FMO_FOCK is called from sirius to add environment
-    ! FMO_DENSITY is called from sirius to store density
-    ! FMO_STORE_NMER_PROPERTY is called from sirius, abacus
+    ! MB_FOCK is called from sirius to add environment
+    ! MB_DENSITY is called from sirius to store density
+    ! MB_STORE_NMER_PROPERTY is called from sirius, abacus
     !                         and (eventually) the response module
 
 #if defined (PRG_DALTON)
@@ -591,7 +592,7 @@ subroutine store_density(density)
 
     endif
 
-8000 format(/1x,"FMO DEBUG: nmer-",i4," density difference =",f10.6)
+8000 format(/1x,"MB DEBUG: nmer-",i4," density difference =",f10.6)
 9000 format(/1x,"ERROR: attempt to write",I5," records for",/1x, &
      & "density",I4," but found that",I5,"was previous written")
 
@@ -673,7 +674,7 @@ subroutine mb_init(coords, charges)
 
     if (mb_initialized) return
 
-    ! a last series of checks before we let FMO loose
+    ! a last series of checks before we let the many-body run loose
     if (size(charges) /= natmb) then
         write(luout,9000) size(charges), natmb
         stop
@@ -683,7 +684,7 @@ subroutine mb_init(coords, charges)
     nuclear_coordinates = coords
     nuclear_charges = charges
 
-    write(luout,'(//2x,a)')  'Fragment Molecular Orbital (FMO) method'
+    write(luout,'(//2x,a)')  'Generalized Embedded Many-Body Method'
     write(luout,'(2x,a)')    '---------------------------------------'
     write(luout,'(2x,a,i4)') 'nbody        = ', nbody
     write(luout,'(2x,a,i4)') 'nfrag        = ', nfrag
@@ -710,7 +711,7 @@ subroutine mb_init(coords, charges)
 end subroutine mb_init
 
 !------------------------------------------------------------------------------
-!> @brief reads FMO input section
+!> @brief reads input section from DALTON
 !!
 !! @author Casper Steinmann
 !!
@@ -720,6 +721,7 @@ end subroutine mb_init
 !! @param[in] word
 !! @param[in] luinp
 !! @param[in] lupri
+!! @todo move this to dalton interface file
 subroutine mb_dalton_input(word, luinp, lupri)
 
     use mb_io, only : change_case
@@ -749,8 +751,8 @@ subroutine mb_dalton_input(word, luinp, lupri)
         read(luinp,'(a7)') option
         call change_case(option)
 
-        ! check to see if we really are running an FMO calculation
-        if (trim(option(2:)) == 'FMO') then
+        ! check to see if we really are running a many-body calculation
+        if (trim(option(2:)) == 'MB') then
             mbrun = .true.
 
         ! read number of fragments. No default.
@@ -832,7 +834,7 @@ subroutine mb_dalton_input(word, luinp, lupri)
     nullify(p_kmer_dens)
     nullify(p_densities)
 
-    ! start over by rewinding and read again until we hit the .FMO keyword, then parse
+    ! start over by rewinding and read again until we hit the .MB keyword, then parse
     mbrun = .false.
     rewind(luinp)
 
@@ -842,8 +844,8 @@ subroutine mb_dalton_input(word, luinp, lupri)
         read(luinp,'(a7)') option
         call change_case(option)
 
-        ! check to see if we really are running an FMO calculation
-        if (trim(option(2:)) == 'FMO') then
+        ! check to see if we really are running a many-body calculation
+        if (trim(option(2:)) == 'MB') then
             mbrun = .true.
 
         else if (.not. mbrun) then
@@ -896,7 +898,7 @@ subroutine mb_dalton_input(word, luinp, lupri)
         else if (trim(option(2:)) == 'DOATMQ') then
             use_atomic_charges = .true.
 
-        ! FMO 1-BODY CONVERGENCE THRESHOLDS
+        ! MB 1-BODY CONVERGENCE THRESHOLDS
         ! maximum number of SCC iterations
         else if (trim(option(2:)) == 'MXSCCI') then
             read(luinp,*) max_scc_iterations
@@ -922,7 +924,7 @@ subroutine mb_dalton_input(word, luinp, lupri)
         else if (option(1:1) == '!' .or. option(1:1) == '#') then
             cycle
         else
-            write(luout,*) 'Unknown option:', option, ' in *FMO.'
+            write(luout,*) 'Unknown option:', option, ' in *MB.'
         end if
     end do
 
@@ -939,7 +941,7 @@ subroutine mb_dalton_input(word, luinp, lupri)
 9000 format(/1x,'ERROR: NFRAG must be larger than 0.')
 9001 format(/1x,'ERROR: NBODY must be larger than 0.')
 9002 format(/1x,'ERROR: NFRAG should be larger than or equal to the NBODY level.')
-9004 format(/1x,'ERROR: You have to specify a basis set through the .BASIS keyword. in the *FMO group.')
+9004 format(/1x,'ERROR: You have to specify a basis set through the .BASIS keyword. in the *MB group.')
 
 end subroutine mb_dalton_input
 
@@ -967,7 +969,7 @@ subroutine ntotal_calculations(ncalcs)
 end subroutine ntotal_calculations
 
 !------------------------------------------------------------------------------
-!> @brief sums up and prints the energies (and properties) for the FMO calculation
+!> @brief sums up and prints the energies (and properties) for the many-body calculation
 !!
 !! @author Casper Steinmann
 subroutine mb_output
@@ -989,8 +991,8 @@ subroutine mb_output
     ! storage for the i-body'th atomic charges
     real(dp), dimension(:,:), allocatable :: atomic_charges
 
-    write(luout,'(//2x,a)')  'Fragment Molecular Orbital (FMO) method'
-    write(luout,'(2x,a)')    '---------------------------------------'
+    write(luout,'(//2x,a)')  'Generalized Embedded Many-Body Method'
+    write(luout,'(2x,a)')    '-------------------------------------'
 
     allocate(energy(nbody))
     allocate(dipole(3,nbody))
