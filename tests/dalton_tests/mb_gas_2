@@ -17,8 +17,8 @@ fi
 #######################################################################
 #  TEST DESCRIPTION
 #######################################################################
-cat > fmo_gas_2.info <<'%EOF%'
-   fmo_gas_2
+cat > mb_gas_2.info <<'%EOF%'
+   mb_gas_2
    ---------------
    Molecule:         Methane and three water molecules
    Wave Function:    HF / STO-3G
@@ -28,7 +28,7 @@ cat > fmo_gas_2.info <<'%EOF%'
 #######################################################################
 #  MOLECULE INPUT
 #######################################################################
-cat > fmo_gas_2.mol <<'%EOF%'
+cat > mb_gas_2.mol <<'%EOF%'
 BASIS
 STO-3G
 
@@ -55,7 +55,7 @@ H             0.1944995798    0.4194969627   -2.3609888378
 #######################################################################
 #  DALTON INPUT
 #######################################################################
-cat > fmo_gas_2.dal <<'%EOF%'
+cat > mb_gas_2.dal <<'%EOF%'
 **DALTON
 .RUN WAVE FUNCTIONS
 .DIRECT
@@ -84,8 +84,8 @@ STO-3G
 #######################################################################
 #  CHECK SCRIPT
 #######################################################################
-echo $CHECK_SHELL > fmo_gas_2.check
-cat >> fmo_gas_2.check <<'%EOF%'
+echo $CHECK_SHELL > mb_gas_2.check
+cat >> mb_gas_2.check <<'%EOF%'
 log=$1
 
 if [ `uname` = Linux ]; then
@@ -151,5 +151,5 @@ else
   exit 1
 fi                
 %EOF%
-chmod +x fmo_gas_2.check
+chmod +x mb_gas_2.check
 #######################################################################

@@ -17,8 +17,8 @@ fi
 #######################################################################
 #  TEST DESCRIPTION
 #######################################################################
-cat > fmo_embed_3_mulliken.info <<'%EOF%'
-   fmo_embed_3_mulliken
+cat > mb_embed_3_mulliken.info <<'%EOF%'
+   mb_embed_3_mulliken
    ---------------
    Molecule:         Methane and three water molecules
    Wave Function:    HF / STO-3G
@@ -30,7 +30,7 @@ cat > fmo_embed_3_mulliken.info <<'%EOF%'
 #######################################################################
 #  MOLECULE INPUT
 #######################################################################
-cat > fmo_embed_3_mulliken.mol <<'%EOF%'
+cat > mb_embed_3_mulliken.mol <<'%EOF%'
 BASIS
 STO-3G
 
@@ -57,7 +57,7 @@ H             0.1944995798    0.4194969627   -2.3609888378
 #######################################################################
 #  DALTON INPUT
 #######################################################################
-cat > fmo_embed_3_mulliken.dal <<'%EOF%'
+cat > mb_embed_3_mulliken.dal <<'%EOF%'
 **DALTON
 .RUN WAVE FUNCTIONS
 .RUN PROPERTIES
@@ -93,8 +93,8 @@ STO-3G
 #######################################################################
 #  CHECK SCRIPT
 #######################################################################
-echo $CHECK_SHELL > fmo_embed_3_mulliken.check
-cat >> fmo_embed_3_mulliken.check <<'%EOF%'
+echo $CHECK_SHELL > mb_embed_3_mulliken.check
+cat >> mb_embed_3_mulliken.check <<'%EOF%'
 log=$1
 
 if [ `uname` = Linux ]; then
@@ -194,5 +194,5 @@ else
   exit 1
 fi                
 %EOF%
-chmod +x fmo_embed_3_mulliken.check
+chmod +x mb_embed_3_mulliken.check
 #######################################################################
