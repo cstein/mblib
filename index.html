@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Mblib : General many-body library for the calculation of energies and energy derived properties" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Mblib</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/cstein/mblib">View on GitHub</a>
+
+          <h1 id="project_title">Mblib</h1>
+          <h2 id="project_tagline">General many-body library for the calculation of energies and energy derived properties</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/cstein/mblib/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/cstein/mblib/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="general-many-body-library" class="anchor" href="#general-many-body-library"><span class="octicon octicon-link"></span></a>General many-body library</h1>
+
+<p>This general many-body library enables you to calculate the energy (and energy derived properties) to any order when you interface it properly to a quantum chemistry code.</p>
+
+<h2>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h2>
+
+<p>Obviously, any quantum chemistry code that can provide SCF capability. Furthermore, either this quantum chemistry code or an external library to provide the integrals are needed. An example of such a library would be the <a href="https://repo.ctcc.no/projects/gen1int" title="library">GEN1INT library</a> (a <a href="http://onlinelibrary.wiley.com/doi/10.1002/qua.22886/abstract" title="paper">paper describing GEN1INT</a> is also available).</p>
+
+<h2>
+<a name="faq" class="anchor" href="#faq"><span class="octicon octicon-link"></span></a>FAQ</h2>
+
+<h3>
+<a name="what-codes-are-this-library-interfaced-to" class="anchor" href="#what-codes-are-this-library-interfaced-to"><span class="octicon octicon-link"></span></a>What codes are this library interfaced to?</h3>
+
+<p>Currently, only the <a href="http://www.daltonprogram.org/" title="DALTON">DALTON</a> program in a development version. The expected public release is sometime in 2014. We do have a plan to provide a patch to the 2013 release before the end of this year which will enable you to try it out yourself.</p>
+
+<h3>
+<a name="how-does-it-work" class="anchor" href="#how-does-it-work"><span class="octicon octicon-link"></span></a>How does it work?</h3>
+
+<p>Because mblib is a generalized library, it does <em>not</em> care too much about the details quantum chemistry. What it cares about is the distribution of quantum chemistry jobs which in turn is run by a code such as DALTON. Properties from this quantum chemistry code are then stored appropriately in mblib for later use.</p>
+
+<p>Please <strong>NOTE</strong> that the mblib API is still young and should not be considered stable because changes can be made as more quantum chemistry codes are added.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Mblib maintained by <a href="https://github.com/cstein">cstein</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
