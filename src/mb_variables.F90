@@ -81,6 +81,10 @@ module mb_variables
     logical, save :: has_atomic_charges = .false.
     !> atomic charges (mulliken or others)
     real(dp), dimension(:,:), save, allocatable :: fragment_atomic_charges
+    !> whether the molecular gradient is available
+    logical, save :: has_molecular_gradient = .false.
+    !> molecular gradient
+    real(dp), dimension(:,:,:), save, allocatable :: fragment_molecular_gradient
 
 
     !> unit to write to for output (default is stdout)

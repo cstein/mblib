@@ -121,6 +121,9 @@ subroutine dalton_input(word, luinp, lupri)
     allocate(fragment_atomic_charges(nbody,natmb))
     fragment_atomic_charges = 0.0d0
 
+    allocate(fragment_molecular_gradient(nbody,natmb,3))
+    fragment_molecular_gradient = 0.0d0
+
     call ntotal_calculations(ncalcs)
     allocate(fragment_energies(ncalcs))
     fragment_energies = 0.0d0

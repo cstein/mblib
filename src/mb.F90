@@ -88,7 +88,7 @@ subroutine mb_executer(dalwrk,iwsize,wctrl)
     nullify(work)
 
 9000 format(72(1H-),/3x,"MB one-body iter",i3," max(dD) =",2f12.9,/72(1H-))
-9005 format(/72(1H-),///3x,"SCC converged in",i3,"iterations!",///72(1H-))
+9005 format(/72(1H-),///3x,"SCC converged in",i3," iterations!",///72(1H-))
 
 end subroutine
 
@@ -633,6 +633,23 @@ subroutine mb_store_nmer_property(property, property_value)
         has_dipole = .true.
     endif
 
+    if (property == 'molgrad') then
+        ! there are always 3 x nat elements we need and they are
+        ! stored as x1, y1, z1, ..., xn, yn, zn
+        nat = size(p_mb_atoms)
+        do i=1,nat
+
+        if (i_mb_kbody == 1) &
+            & fragment_molecular_gradient(i_mb_kbody,p_mb_atoms(i), :) = 0.0d0
+
+        fragment_molecular_gradient(i_mb_kbody,p_mb_atoms(i), :) = &
+        fragment_molecular_gradient(i_mb_kbody,p_mb_atoms(i), :) + &
+                                      & property_value(1+3*(i-1):3*i)
+
+        enddo
+        has_molecular_gradient = .true.
+    endif
+
 end subroutine mb_store_nmer_property
 
 !------------------------------------------------------------------------------
@@ -735,6 +752,8 @@ subroutine mb_output
     real(dp), dimension(:,:), allocatable :: dipole
     ! storage for the i-body'th atomic charges
     real(dp), dimension(:,:), allocatable :: atomic_charges
+    ! storage for the i-body'th molecular gradient
+    real(dp), dimension(:,:,:), allocatable :: molecular_gradient
 
     write(luout,'(//2x,a)')  'Generalized Embedded Many-Body Method'
     write(luout,'(2x,a)')    '-------------------------------------'
@@ -742,6 +761,7 @@ subroutine mb_output
     allocate(energy(nbody))
     allocate(dipole(3,nbody))
     allocate(atomic_charges(nbody,natmb))
+    allocate(molecular_gradient(nbody,natmb,3))
 
     ioff = 0
     do ibody = 1,nbody
@@ -795,6 +815,24 @@ subroutine mb_output
         endif
         !------------
 
+        !------------
+        ! write the molecular gradient
+        if (has_molecular_gradient) then
+            write(luout,'(//2x,i3,a)') ibody,'-body molecular gradient'
+            write(luout,'(2x,a)') '-----------------------------'
+            molecular_gradient = 0.0d0
+            do k=1,ibody
+               molecular_gradient(k,:,:) = fragment_molecular_gradient(k,:,:) * &
+                        & fragment_binomials(ibody,k)
+            enddo
+            do k=1,natmb
+                write(luout,9015) k, sum(molecular_gradient(:,k,1)), &
+                                     sum(molecular_gradient(:,k,2)), &
+                                     sum(molecular_gradient(:,k,3))
+            enddo
+        endif
+        !------------
+
         ioff = ioff+ncalcs
         deallocate(fragment_list)
     enddo
@@ -808,6 +846,7 @@ subroutine mb_output
 9000 format(/1x,'E(',i2,') =',f20.12)
 9005 format(/1x,'D(',i4,') =',3f12.5,' |D| =',f12.5)
 9010 format(4x,'Q(',i2,') =',f12.5)
+9015 format(4x,'x(',i2,') =',3f20.12)
 
 end subroutine
 
