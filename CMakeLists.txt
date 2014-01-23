@@ -37,6 +37,7 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/mb_utilities.F90
     ${PROJECT_SOURCE_DIR}/src/interfaces/integral_interface.F90
     ${PROJECT_SOURCE_DIR}/src/interfaces/dalton_interface.F
+    ${PROJECT_SOURCE_DIR}/src/interfaces/input_readers.F90
     )
 
 add_library(mblib ${SOURCES})

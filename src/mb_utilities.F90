@@ -434,4 +434,53 @@ subroutine get_nmer_atoms(nmer, atoms)
 
 end subroutine get_nmer_atoms
 
+
+
+!------------------------------------------------------------------------------
+!> @brief calculates the number of calculations required for a kbody calculation
+!!
+!! @author Casper Steinmann
+!!
+!! @param[in] kbody the k-body level
+!! @param[out] ncalcs the number of calculations
+subroutine calc_n_kbodies(kbody,ncalcs)
+
+    use mb_variables, only : nfrag
+
+    integer, intent(in) :: kbody
+    integer, intent(out) :: ncalcs
+
+    integer :: i
+
+    ncalcs = nfrag
+    do i=2,kbody
+        ncalcs = ncalcs * (nfrag-i+1)
+    enddo
+    ncalcs = ncalcs / factorial(kbody)
+
+end subroutine calc_n_kbodies
+
+!------------------------------------------------------------------------------
+!> @brief calculate the total number of calculations for the entire calculation
+!!
+!! @author Casper Steinmann
+!!
+!! @param[out] ncalcs the total number of calculations
+subroutine ntotal_calculations(ncalcs)
+
+    use mb_variables, only : nbody
+
+    integer, intent(out) :: ncalcs
+
+    integer :: i
+    integer :: tcalcs
+
+    ncalcs = 0
+    do i=1,nbody
+        call calc_n_kbodies(i,tcalcs)
+        ncalcs = ncalcs + tcalcs
+    enddo
+
+end subroutine ntotal_calculations
+
 end module mb_utilities
