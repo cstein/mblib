@@ -7,10 +7,16 @@ set(CMAKE_MODULE_PATH
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake
     )
 
-set(CMAKE_Fortran_MODULE_DIRECTORY
-    ${PROJECT_BINARY_DIR}/modules
-    )
 include(ConfigParentSettings)
+
+if(NOT CMAKE_Fortran_MODULE_DIRECTORY)
+    set(CMAKE_Fortran_MODULE_DIRECTORY
+        ${PROJECT_BINARY_DIR}/modules)
+endif()
+
+include_directories(
+${CMAKE_Fortran_MODULE_DIRECTORY}
+)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE
@@ -21,9 +27,7 @@ if(NOT CMAKE_BUILD_TYPE)
         )
 endif()
 
-set(LIBS)
-
-include_directories(${PROJECT_SOURCE_DIR})
+include(ConfigCompilerFlags)
 
 set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/mb.F90
@@ -34,7 +38,6 @@ set(SOURCES
     ${PROJECT_SOURCE_DIR}/src/interfaces/integral_interface.F90
     ${PROJECT_SOURCE_DIR}/src/interfaces/dalton_interface.F
     )
-include(ConfigCompilerFlags)
 
 add_library(mblib ${SOURCES})
 

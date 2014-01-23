@@ -61,6 +61,7 @@
      *            idalton_work_size,
      *            dalton_work_control)
 
+      call reset_for_sirius
       if(rnsiri) call exesir(work(0),
      *                       idalton_work_size,
      *                       dalton_work_control)
@@ -217,6 +218,8 @@ C!       unknown reason
       ! mark that sirius should re-read options and settings
       inpprc = .false.
 
+      ! always flag a new geometry
+      newgeo = .true.
 
       ! force that we do huckel again
       dohuckel = .true.
