@@ -128,6 +128,9 @@ subroutine dalton_input(word, luinp, lupri)
     allocate(fragment_energies(ncalcs))
     fragment_energies = 0.0d0
 
+    allocate(fragment_corr_energies(ncalcs))
+    fragment_corr_energies = 0.0d0
+
     allocate(fragment_embed_energies(nfrag))
     fragment_embed_energies = 0.0d0
 

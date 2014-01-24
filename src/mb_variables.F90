@@ -67,6 +67,8 @@ module mb_variables
     ! fragment-related properties such as energies
     !> calculated fragment energies for @b all fragments (1-mers, 2-mers and so on ...)
     real(dp), dimension(:), save, allocatable :: fragment_energies
+    !> calculated fragment correlated energys for $b all fragments
+    real(dp), dimension(:), save, allocatable :: fragment_corr_energies
     !> calculated fragment embedding energies for @b 1-body fragments
     real(dp), dimension(:), save, allocatable :: fragment_embed_energies
     !> whether calculated dipoles are available

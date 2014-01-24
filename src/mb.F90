@@ -600,6 +600,10 @@ subroutine mb_store_nmer_property(property, property_value)
     if (property == 'energy') &
         & fragment_energies(imb_current_calculation) = property_value(1)
 
+    ! store correlated energies similarly
+    if (property == 'correnergy') &
+        & fragment_corr_energies(imb_current_calculation) = property_value(1)
+
     ! only store the embedding energy for 1-mers to correct double
     ! counting the 1-body term
     if (property == 'embedding_energy' .and. i_mb_kbody == 1) &
@@ -738,7 +742,7 @@ subroutine mb_output
 
     real(dp), external :: ddot
 
-    real(dp) :: ibody_energy
+    real(dp) :: ibody_energy, ibody_corr_energy
 
     integer :: ibody, icalc, ioff, k, idip
     integer :: ncalcs
@@ -746,8 +750,15 @@ subroutine mb_output
 
     real(dp), dimension(3) :: dipdip
 
+    ! format statement for energies
+    integer :: neg_labels = 1
+    character(len=80) :: label, header, separator
+    character(len=1), dimension(5) :: id_labels
+    character(len=16), dimension(2) :: eg_labels
+
     ! storage for the i-body'th energy
     real(dp), dimension(:), allocatable :: energy
+    real(dp), dimension(:), allocatable :: energy_corr
     ! storage for the i-body'th dipole
     real(dp), dimension(:,:), allocatable :: dipole
     ! storage for the i-body'th atomic charges
@@ -755,35 +766,66 @@ subroutine mb_output
     ! storage for the i-body'th molecular gradient
     real(dp), dimension(:,:,:), allocatable :: molecular_gradient
 
+    id_labels = (/"I", "J", "K", "L", "M"/)
+    eg_labels = (/"      Euncorr   ", "      Ecorr     "/)
+
     write(luout,'(//2x,a)')  'Generalized Embedded Many-Body Method'
     write(luout,'(2x,a)')    '-------------------------------------'
 
     allocate(energy(nbody))
+    allocate(energy_corr(nbody))
     allocate(dipole(3,nbody))
     allocate(atomic_charges(nbody,natmb))
     allocate(molecular_gradient(nbody,natmb,3))
 
+    ! if the sum of correlated energies is not zero, then we calculated them
+    if (sum(fragment_corr_energies) .ne. 0.0d0) &
+        neg_labels = 2
+
     ioff = 0
     do ibody = 1,nbody
-        write(luout,'(//2x,i3,a)')  ibody,'-body result(s)'
-        write(luout,'(2x,a)') '===================='
-
+        ! setup the correct accounting information for properties
         call calc_n_kbodies(ibody, ncalcs)
         allocate(fragment_list(ncalcs,ibody))
         call build_fragment_list(fragment_list)
 
-        ! print out all i-mers
+        ! write the correct labels and headers depending on what is calculated
+        write(label,'("(",i2,"i4,",i2,"f20.9)")') ibody, neg_labels
+        write(header,'("(",i2,"a4,",i2,"a20)")') ibody, neg_labels
+        write(separator, '("(",i2,"(1H-),",i2,"(1H-))")') 4*ibody, 20*neg_labels
+
+        ! write the i-body header
+        write(luout,'(//2x,i3,a)')  ibody,'-body result(s)'
+        write(luout,'(2x,a,/)') '===================='
+
+        write(luout, header) id_labels(1:ibody), eg_labels(1:neg_labels)
+        write(luout, separator)
         do icalc=1,ncalcs
-            write(luout,*) (fragment_list(icalc,k),k=1,ibody), fragment_energies(icalc+ioff)
+            if (neg_labels == 1) then
+                write(luout,label) (fragment_list(icalc,k),k=1,ibody), fragment_energies(icalc+ioff)
+            else
+                write(luout,label) (fragment_list(icalc,k),k=1,ibody), &
+                    & fragment_energies(icalc+ioff), &
+                    & fragment_corr_energies(icalc+ioff)
+            endif
         enddo
 
         !------------
-        ! energy
+        ! total i-body energy
         energy(ibody) = sum(fragment_energies(1+ioff:ncalcs+ioff))
+        energy_corr(ibody) = sum(fragment_corr_energies(1+ioff:ncalcs+ioff))
 
         ibody_energy = ddot(ibody, energy(1:ibody), 1, fragment_binomials(ibody,1:ibody), 1)
-        if (ibody==1) ibody_energy = ibody_energy - sum(fragment_embed_energies)
+        ibody_corr_energy = ddot(ibody, energy_corr(1:ibody), 1, fragment_binomials(ibody,1:ibody), 1)
+
+        ! remove the embedding energy (if present) from the monomers to
+        ! avoid double counting
+        if (ibody==1) then
+            ibody_energy = ibody_energy - sum(fragment_embed_energies)
+            ibody_corr_energy = ibody_corr_energy - sum(fragment_embed_energies)
+        endif
         write(luout,9000) ibody, ibody_energy
+        if (neg_labels == 2) write(luout,9001) ibody, ibody_corr_energy
         !------------
 
         !------------
@@ -843,8 +885,9 @@ subroutine mb_output
 
     write(luout,*)
 
-9000 format(/1x,'E(',i2,') =',f20.12)
-9005 format(/1x,'D(',i4,') =',3f12.5,' |D| =',f12.5)
+9000 format(/3x,'Eu(',i2,') =',f20.12)
+9001 format(/3x,'Ec(',i2,') =',f20.12)
+9005 format(/3x,'D(',i4,') =',3f12.5,' |D| =',f12.5)
 9010 format(4x,'Q(',i2,') =',f12.5)
 9015 format(4x,'x(',i2,') =',3f20.12)
 
